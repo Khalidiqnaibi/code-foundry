@@ -78,9 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Modern interactive platform for beginner programmers and CS students. Courses, AI feedback, and visual learning." },
       { name: "author", content: "CodePath" },
       { property: "og:title", content: "CodePath — Learn Real Programming Skills" },
-      { property: "og:description", content: "Courses, interactive labs, AI mentor, and visual algorithm learning." },
+      { property: "og:description", content: "Modern interactive platform for beginner programmers and CS students. Courses, AI feedback, and visual learning." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "CodePath — Learn Real Programming Skills" },
+      { name: "twitter:description", content: "Modern interactive platform for beginner programmers and CS students. Courses, AI feedback, and visual learning." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f33f75ba-d347-4e48-90a9-2fced52131c9" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/f33f75ba-d347-4e48-90a9-2fced52131c9" },
     ],
     links: [
       {
