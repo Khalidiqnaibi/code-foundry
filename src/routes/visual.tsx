@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, RotateCcw, Cpu, GitBranch, Boxes, BarChart3 } from "lucide-react";
@@ -133,7 +134,7 @@ function RecursionViz() {
   const build = (n: number): Node => n <= 1 ? { v: n } : { v: n, l: build(n - 1), r: build(n - 2) };
   const tree = build(5);
 
-  const render = (n: Node, depth = 0): JSX.Element => (
+  const render = (n: Node, depth = 0): React.ReactElement => (
     <div className="flex flex-col items-center">
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: depth * 0.05 }}
