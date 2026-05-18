@@ -87,7 +87,7 @@ function LabPage() {
         ))}
       </div>
 
-      <div className="flex-1 grid lg:grid-cols-2 min-h-0">
+      <div className="flex-1 grid lg:grid-cols-2 lg:min-h-0">
         {/* Left: video + theory */}
         <div className="border-b lg:border-b-0 lg:border-r border-border overflow-y-auto">
           <div className="p-5">
