@@ -154,7 +154,7 @@ function LabPage() {
         </div>
 
         {/* Right: editor + AI */}
-        <div className="flex flex-col min-h-0">
+        <div className="flex flex-col lg:min-h-0">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/30 shrink-0">
             <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
               <FileCode2 className="w-4 h-4" /> challenge.js
