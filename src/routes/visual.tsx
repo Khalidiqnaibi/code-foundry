@@ -56,51 +56,44 @@ function VisualPage() {
 
 /* -------------------- Bubble sort -------------------- */
 const SORT_VALUES = [8, 3, 5, 1, 7, 2, 9, 4, 6];
-type SortState = { arr: number[]; i: number; j: number; hl: [number, number] | null; done: boolean };
+type SortFrame = { arr: number[]; hl: [number, number] | null };
 
-const createSortState = (arr = SORT_VALUES): SortState => ({ arr, i: 0, j: 0, hl: null, done: false });
+const buildBubbleFrames = (values: number[]): SortFrame[] => {
+  const frames: SortFrame[] = [{ arr: values.slice(), hl: null }];
+  const arr = values.slice();
+  for (let i = 0; i < arr.length - 1; i++) {
+    for (let j = 0; j < arr.length - 1 - i; j++) {
+      if (arr[j] > arr[j + 1]) [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+      frames.push({ arr: arr.slice(), hl: [j, j + 1] });
+    }
+  }
+  frames.push({ arr: arr.slice(), hl: null });
+  return frames;
+};
 
 function SortViz() {
-  const [sort, setSort] = useState<SortState>(() => createSortState());
+  const [frames, setFrames] = useState<SortFrame[]>(() => buildBubbleFrames(SORT_VALUES));
+  const [frame, setFrame] = useState(0);
   const [running, setRunning] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { arr, hl } = sort;
+  const { arr, hl } = frames[frame];
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
-  const step = React.useCallback(() => {
-    setSort((current) => {
-      const n = current.arr.length;
-      if (current.done || current.i >= n - 1) return { ...current, hl: null, done: true };
-
-      const nextArr = current.arr.slice();
-      const active: [number, number] = [current.j, current.j + 1];
-      if (nextArr[current.j] > nextArr[current.j + 1]) {
-        [nextArr[current.j], nextArr[current.j + 1]] = [nextArr[current.j + 1], nextArr[current.j]];
-      }
-
-      const endOfPass = current.j + 1 >= n - 1 - current.i;
-      const nextI = endOfPass ? current.i + 1 : current.i;
-      const nextJ = endOfPass ? 0 : current.j + 1;
-      const done = nextI >= n - 1;
-
-      return { arr: nextArr, i: nextI, j: nextJ, hl: done ? null : active, done };
-    });
-  }, []);
-
   useEffect(() => {
-    if (!running || sort.done) return;
-    timer.current = setTimeout(step, 250);
+    if (!running) return;
+    if (frame >= frames.length - 1) {
+      setRunning(false);
+      return;
+    }
+    timer.current = setTimeout(() => setFrame((current) => current + 1), 250);
     return () => { if (timer.current) clearTimeout(timer.current); };
-  }, [running, sort, step]);
-
-  useEffect(() => {
-    if (sort.done && running) setRunning(false);
-  }, [running, sort.done]);
+  }, [frame, frames.length, running]);
 
   const reset = () => {
     setRunning(false);
-    setSort(createSortState(shuffle(SORT_VALUES)));
+    setFrames(buildBubbleFrames(shuffle(SORT_VALUES)));
+    setFrame(0);
   };
 
   const toggleRun = () => {
@@ -109,10 +102,11 @@ function SortViz() {
       return;
     }
 
-    if (sort.done) {
-      setSort(createSortState(shuffle(SORT_VALUES)));
+    if (frame >= frames.length - 1) {
+      setFrames(buildBubbleFrames(shuffle(SORT_VALUES)));
+      setFrame(1);
     } else {
-      step();
+      setFrame((current) => Math.min(current + 1, frames.length - 1));
     }
     setRunning(true);
   };
