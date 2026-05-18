@@ -129,42 +129,108 @@ function SortViz() {
 function shuffle<T>(a: T[]) { return a.slice().sort(() => Math.random() - 0.5); }
 
 /* -------------------- Recursion tree -------------------- */
-function RecursionViz() {
-  type Node = { v: number; l?: Node; r?: Node };
-  const build = (n: number): Node => n <= 1 ? { v: n } : { v: n, l: build(n - 1), r: build(n - 2) };
-  const tree = build(5);
+type FibNode = { id: string; v: number; depth: number; x: number; l?: FibNode; r?: FibNode };
 
-  const render = (n: Node, depth = 0): React.ReactElement => (
-    <div className="flex flex-col items-center">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: depth * 0.05 }}
-        className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-mono border ${
-          n.v <= 1 ? "bg-success/15 text-success border-success/40" : "bg-primary/15 text-primary border-primary/30"
-        }`}
-      >fib({n.v})</motion.div>
-      {(n.l || n.r) && (
-        <>
-          <div className="w-px h-4 bg-border" />
-          <div className="flex items-start gap-4 relative">
-            {n.l && render(n.l, depth + 1)}
-            {n.r && render(n.r, depth + 1)}
-          </div>
-        </>
-      )}
-    </div>
-  );
+function layoutFib(n: number): { root: FibNode; width: number; depth: number } {
+  let leafIdx = 0;
+  let maxDepth = 0;
+  const build = (v: number, depth: number, path: string): FibNode => {
+    maxDepth = Math.max(maxDepth, depth);
+    if (v <= 1) {
+      const x = leafIdx++;
+      return { id: path, v, depth, x };
+    }
+    const l = build(v - 1, depth + 1, path + "L");
+    const r = build(v - 2, depth + 1, path + "R");
+    return { id: path, v, depth, x: (l.x + r.x) / 2, l, r };
+  };
+  const root = build(n, 0, "R");
+  return { root, width: leafIdx, depth: maxDepth };
+}
+
+function RecursionViz() {
+  const [n, setN] = useState(5);
+  const { root, width, depth } = layoutFib(n);
+  const colW = 56;
+  const rowH = 78;
+  const padX = 28;
+  const padY = 28;
+  const svgW = Math.max(320, width * colW + padX * 2);
+  const svgH = (depth + 1) * rowH + padY * 2;
+
+  const nodes: FibNode[] = [];
+  const edges: { x1: number; y1: number; x2: number; y2: number; key: string }[] = [];
+  const walk = (node: FibNode) => {
+    nodes.push(node);
+    const px = padX + node.x * colW + colW / 2;
+    const py = padY + node.depth * rowH;
+    for (const c of [node.l, node.r]) {
+      if (!c) continue;
+      const cx = padX + c.x * colW + colW / 2;
+      const cy = padY + c.depth * rowH;
+      edges.push({ x1: px, y1: py + 18, x2: cx, y2: cy - 18, key: node.id + "-" + c.id });
+      walk(c);
+    }
+  };
+  walk(root);
 
   return (
-    <Card className="p-6">
-      <div className="flex items-start justify-between gap-3 mb-5">
+    <Card className="p-4 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
         <div>
           <div className="font-semibold">Fibonacci Recursion Tree</div>
-          <div className="text-xs text-muted-foreground mt-0.5">Each call branches into <code className="font-mono">fib(n-1)</code> + <code className="font-mono">fib(n-2)</code> until base cases.</div>
+          <div className="text-xs text-muted-foreground mt-0.5">Each call branches into <code className="font-mono">fib(n-1)</code> + <code className="font-mono">fib(n-2)</code>.</div>
         </div>
-        <Badge variant="success">O(2ⁿ) without memo</Badge>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex rounded-md border border-border overflow-hidden">
+            {[3, 4, 5, 6].map((k) => (
+              <button
+                key={k}
+                onClick={() => setN(k)}
+                className={`px-2.5 py-1 text-xs font-mono transition-colors ${
+                  n === k ? "bg-primary text-primary-foreground" : "hover:bg-accent text-muted-foreground"
+                }`}
+              >fib({k})</button>
+            ))}
+          </div>
+          <Badge variant="success">O(2ⁿ)</Badge>
+        </div>
       </div>
-      <div className="overflow-x-auto pb-4">
-        <div className="min-w-max flex justify-center">{render(tree)}</div>
+      <div className="overflow-x-auto pb-2">
+        <svg viewBox={`0 0 ${svgW} ${svgH}`} width={svgW} height={svgH} className="max-w-full h-auto block mx-auto">
+          {edges.map((e, i) => (
+            <motion.line
+              key={e.key}
+              x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+              stroke="currentColor" className="text-border" strokeWidth="1.5"
+              initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ delay: 0.03 * i, duration: 0.25 }}
+            />
+          ))}
+          {nodes.map((nd, i) => {
+            const cx = padX + nd.x * colW + colW / 2;
+            const cy = padY + nd.depth * rowH;
+            const isBase = nd.v <= 1;
+            return (
+              <motion.g
+                key={nd.id}
+                initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.03 * i, type: "spring", stiffness: 260, damping: 20 }}
+                style={{ transformOrigin: `${cx}px ${cy}px` }}
+              >
+                <circle
+                  cx={cx} cy={cy} r={18}
+                  className={isBase ? "fill-success/15 stroke-success/50" : "fill-primary/15 stroke-primary/40"}
+                  strokeWidth="1.5"
+                />
+                <text
+                  x={cx} y={cy + 4} textAnchor="middle"
+                  className={`font-mono text-[11px] ${isBase ? "fill-success" : "fill-primary"}`}
+                >fib({nd.v})</text>
+              </motion.g>
+            );
+          })}
+        </svg>
       </div>
     </Card>
   );
@@ -172,31 +238,69 @@ function RecursionViz() {
 
 /* -------------------- Memory diagram -------------------- */
 function MemoryViz() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const ptrRef = useRef<HTMLDivElement>(null);
+  const heapRef = useRef<HTMLDivElement>(null);
+  const [arrow, setArrow] = useState<{ d: string } | null>(null);
+  const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+
+  useEffect(() => {
+    const compute = () => {
+      const c = containerRef.current;
+      const p = ptrRef.current;
+      const h = heapRef.current;
+      if (!c || !p || !h) return;
+      const cb = c.getBoundingClientRect();
+      const pb = p.getBoundingClientRect();
+      const hb = h.getBoundingClientRect();
+      setSize({ w: cb.width, h: cb.height });
+      const stacked = hb.top >= pb.bottom - 2;
+      let x1: number, y1: number, x2: number, y2: number, d: string;
+      if (stacked) {
+        x1 = pb.left + pb.width / 2 - cb.left;
+        y1 = pb.bottom - cb.top;
+        x2 = hb.left + hb.width / 2 - cb.left;
+        y2 = hb.top - cb.top;
+        const my = (y1 + y2) / 2;
+        d = `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`;
+      } else {
+        x1 = pb.right - cb.left;
+        y1 = pb.top + pb.height / 2 - cb.top;
+        x2 = hb.left - cb.left;
+        y2 = hb.top + 24 - cb.top;
+        const mx = (x1 + x2) / 2;
+        d = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+      }
+      setArrow({ d });
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    if (containerRef.current) ro.observe(containerRef.current);
+    if (heapRef.current) ro.observe(heapRef.current);
+    window.addEventListener("resize", compute);
+    return () => { ro.disconnect(); window.removeEventListener("resize", compute); };
+  }, []);
+
   return (
-    <Card className="p-6">
+    <Card className="p-4 sm:p-6">
       <div className="font-semibold mb-1">Stack & Heap Memory</div>
       <div className="text-xs text-muted-foreground mb-5">A variable on the stack pointing to an object allocated on the heap.</div>
-      <div className="grid md:grid-cols-2 gap-6 relative">
+      <div ref={containerRef} className="grid md:grid-cols-2 gap-8 md:gap-10 relative">
         <div>
           <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Stack</div>
           <div className="space-y-2">
-            {[
-              { name: "main()", val: "" },
-              { name: "user", val: "→ 0x4a2f", id: "stack-ptr" },
-              { name: "count", val: "42" },
-            ].map((r) => (
-              <div key={r.name} id={r.id} className="flex items-center justify-between px-3 py-2.5 rounded-md border border-border bg-muted/40 font-mono text-sm">
-                <span className="text-muted-foreground">{r.name}</span>
-                <span className={r.id ? "text-primary" : ""}>{r.val}</span>
-              </div>
-            ))}
+            <MemRow name="main()" val="" />
+            <div ref={ptrRef}>
+              <MemRow name="user" val="→ 0x4a2f" highlight />
+            </div>
+            <MemRow name="count" val="42" />
           </div>
         </div>
         <div>
           <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Heap</div>
           <motion.div
+            ref={heapRef}
             initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
-            id="heap-obj"
             className="p-4 rounded-lg border border-primary/40 bg-primary/5 font-mono text-sm"
           >
             <div className="text-xs text-muted-foreground mb-2">0x4a2f — User</div>
@@ -205,17 +309,36 @@ function MemoryViz() {
             <div>streak: <span className="text-warning">7</span></div>
           </motion.div>
         </div>
-        {/* Arrow */}
-        <svg className="hidden md:block absolute pointer-events-none" style={{ left: "47%", top: "78px", width: "10%", height: "40px" }} viewBox="0 0 100 40">
-          <defs>
-            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
-            </marker>
-          </defs>
-          <path d="M5 20 L 90 20" stroke="currentColor" strokeWidth="1.5" markerEnd="url(#arr)" className="text-primary" />
-        </svg>
+        {arrow && size.w > 0 && (
+          <svg
+            className="absolute inset-0 pointer-events-none text-primary"
+            width={size.w} height={size.h}
+            viewBox={`0 0 ${size.w} ${size.h}`}
+          >
+            <defs>
+              <marker id="mem-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+              </marker>
+            </defs>
+            <motion.path
+              d={arrow.d}
+              stroke="currentColor" strokeWidth="1.5" fill="none"
+              markerEnd="url(#mem-arr)"
+              initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5 }}
+            />
+          </svg>
+        )}
       </div>
     </Card>
+  );
+}
+
+function MemRow({ name, val, highlight }: { name: string; val: string; highlight?: boolean }) {
+  return (
+    <div className="flex items-center justify-between px-3 py-2.5 rounded-md border border-border bg-muted/40 font-mono text-sm">
+      <span className="text-muted-foreground">{name}</span>
+      <span className={highlight ? "text-primary" : ""}>{val}</span>
+    </div>
   );
 }
 
