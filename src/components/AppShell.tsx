@@ -55,10 +55,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       <motion.div
-        animate={{ paddingLeft: sidebarWidth }}
+        animate={{ "--sb-w": `${sidebarWidth}px` } as any}
         transition={{ type: "spring", stiffness: 260, damping: 28 }}
-        className="min-h-screen flex flex-col"
-        style={{ paddingLeft: 0 }}
+        className="min-h-screen flex flex-col md:pl-[var(--sb-w,0px)]"
       >
         <div className="md:hidden" />
         <Topbar
