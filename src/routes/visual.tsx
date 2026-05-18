@@ -55,41 +55,60 @@ function VisualPage() {
 }
 
 /* -------------------- Bubble sort -------------------- */
+const SORT_VALUES = [8, 3, 5, 1, 7, 2, 9, 4, 6];
+type SortFrame = { arr: number[]; hl: [number, number] | null };
+
+const buildBubbleFrames = (values: number[]): SortFrame[] => {
+  const frames: SortFrame[] = [{ arr: values.slice(), hl: null }];
+  const arr = values.slice();
+  for (let i = 0; i < arr.length - 1; i++) {
+    for (let j = 0; j < arr.length - 1 - i; j++) {
+      if (arr[j] > arr[j + 1]) [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+      frames.push({ arr: arr.slice(), hl: [j, j + 1] });
+    }
+  }
+  frames.push({ arr: arr.slice(), hl: null });
+  return frames;
+};
+
 function SortViz() {
-  const [arr, setArr] = useState<number[]>([8, 3, 5, 1, 7, 2, 9, 4, 6]);
-  useEffect(() => { setArr(shuffle([8, 3, 5, 1, 7, 2, 9, 4, 6])); }, []);
+  const [frames, setFrames] = useState<SortFrame[]>(() => buildBubbleFrames(SORT_VALUES));
+  const [frame, setFrame] = useState(0);
   const [running, setRunning] = useState(false);
-  const [hl, setHl] = useState<[number, number] | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const state = useRef({ i: 0, j: 0 });
+  const { arr, hl } = frames[frame];
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
-  const step = () => {
-    setArr((a) => {
-      const n = a.length;
-      const { i, j } = state.current;
-      if (i >= n - 1) { setRunning(false); setHl(null); return a; }
-      const copy = a.slice();
-      setHl([j, j + 1]);
-      if (copy[j] > copy[j + 1]) [copy[j], copy[j + 1]] = [copy[j + 1], copy[j]];
-      if (j + 1 >= n - 1 - i) { state.current = { i: i + 1, j: 0 }; }
-      else state.current = { i, j: j + 1 };
-      return copy;
-    });
-  };
-
   useEffect(() => {
     if (!running) return;
-    timer.current = setTimeout(step, 250);
+    if (frame >= frames.length - 1) {
+      setRunning(false);
+      return;
+    }
+    timer.current = setTimeout(() => setFrame((current) => current + 1), 250);
     return () => { if (timer.current) clearTimeout(timer.current); };
-  }, [arr, running]);
+  }, [frame, frames.length, running]);
 
   const reset = () => {
     setRunning(false);
-    state.current = { i: 0, j: 0 };
-    setHl(null);
-    setArr(shuffle([8, 3, 5, 1, 7, 2, 9, 4, 6]));
+    setFrames(buildBubbleFrames(shuffle(SORT_VALUES)));
+    setFrame(0);
+  };
+
+  const toggleRun = () => {
+    if (running) {
+      setRunning(false);
+      return;
+    }
+
+    if (frame >= frames.length - 1) {
+      setFrames(buildBubbleFrames(shuffle(SORT_VALUES)));
+      setFrame(1);
+    } else {
+      setFrame((current) => Math.min(current + 1, frames.length - 1));
+    }
+    setRunning(true);
   };
 
   const max = Math.max(...arr);
@@ -102,7 +121,7 @@ function SortViz() {
         </div>
         <div className="flex gap-2">
           <Btn size="sm" variant="outline" onClick={reset}><RotateCcw className="w-3.5 h-3.5" /> Reset</Btn>
-          <Btn size="sm" onClick={() => setRunning((r) => !r)}>
+          <Btn size="sm" onClick={toggleRun}>
             {running ? <><Pause className="w-3.5 h-3.5" /> Pause</> : <><Play className="w-3.5 h-3.5" /> Run</>}
           </Btn>
         </div>
@@ -112,7 +131,7 @@ function SortViz() {
           const isHl = hl?.includes(i);
           return (
             <motion.div
-              key={i}
+              key={v}
               layout
               className={`w-9 rounded-t-md flex items-end justify-center text-xs font-mono pb-1 ${
                 isHl ? "bg-warning text-warning-foreground" : "bg-primary/80 text-primary-foreground"
