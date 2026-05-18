@@ -56,7 +56,8 @@ function VisualPage() {
 
 /* -------------------- Bubble sort -------------------- */
 function SortViz() {
-  const [arr, setArr] = useState<number[]>(() => shuffle([8, 3, 5, 1, 7, 2, 9, 4, 6]));
+  const [arr, setArr] = useState<number[]>([8, 3, 5, 1, 7, 2, 9, 4, 6]);
+  useEffect(() => { setArr(shuffle([8, 3, 5, 1, 7, 2, 9, 4, 6])); }, []);
   const [running, setRunning] = useState(false);
   const [hl, setHl] = useState<[number, number] | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
