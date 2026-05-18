@@ -64,7 +64,7 @@ function LabPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] flex flex-col">
+    <div className="flex flex-col lg:h-[calc(100vh-3.5rem)]">
       {/* Lesson stepper */}
       <div className="border-b border-border px-4 py-2.5 flex items-center gap-2 overflow-x-auto">
         <span className="text-xs text-muted-foreground mr-2 shrink-0">Lesson flow:</span>
@@ -87,7 +87,7 @@ function LabPage() {
         ))}
       </div>
 
-      <div className="flex-1 grid lg:grid-cols-2 min-h-0">
+      <div className="flex-1 grid lg:grid-cols-2 lg:min-h-0">
         {/* Left: video + theory */}
         <div className="border-b lg:border-b-0 lg:border-r border-border overflow-y-auto">
           <div className="p-5">
@@ -154,7 +154,7 @@ function LabPage() {
         </div>
 
         {/* Right: editor + AI */}
-        <div className="flex flex-col min-h-0">
+        <div className="flex flex-col lg:min-h-0">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-muted/30 shrink-0">
             <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
               <FileCode2 className="w-4 h-4" /> challenge.js
@@ -176,7 +176,7 @@ function LabPage() {
           </div>
 
           {/* AI Eval */}
-          <div className="border-t border-border p-4 bg-muted/20 max-h-[55%] overflow-y-auto shrink-0">
+          <div className="border-t border-border p-4 bg-muted/20 lg:max-h-[55%] lg:overflow-y-auto shrink-0">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" />

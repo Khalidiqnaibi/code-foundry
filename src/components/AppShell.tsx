@@ -54,11 +54,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      <motion.div
-        animate={{ paddingLeft: sidebarWidth }}
-        transition={{ type: "spring", stiffness: 260, damping: 28 }}
-        className="min-h-screen flex flex-col"
-        style={{ paddingLeft: 0 }}
+      <div
+        className="min-h-screen flex flex-col md:pl-[var(--sb-w)] transition-[padding] duration-300"
+        style={{ ["--sb-w" as any]: `${sidebarWidth}px` }}
       >
         <div className="md:hidden" />
         <Topbar
@@ -70,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           setProfileOpen={setProfileOpen}
         />
         <main className="flex-1 min-w-0">{children}</main>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -94,10 +92,10 @@ function Topbar({
         <Menu className="w-5 h-5" />
       </button>
 
-      <div className="flex-1 max-w-md relative">
+      <div className="flex-1 min-w-0 max-w-md relative">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
-          placeholder="Search courses, lessons, docs..."
+          placeholder="Search..."
           className="w-full h-9 pl-9 pr-3 rounded-md bg-muted/60 border border-transparent focus:bg-background focus:border-border focus:outline-none focus:ring-2 focus:ring-ring/40 text-sm transition-all"
         />
       </div>
