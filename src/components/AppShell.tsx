@@ -92,10 +92,10 @@ function Topbar({
         <Menu className="w-5 h-5" />
       </button>
 
-      <div className="flex-1 max-w-md relative">
+      <div className="flex-1 min-w-0 max-w-md relative">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
-          placeholder="Search courses, lessons, docs..."
+          placeholder="Search..."
           className="w-full h-9 pl-9 pr-3 rounded-md bg-muted/60 border border-transparent focus:bg-background focus:border-border focus:outline-none focus:ring-2 focus:ring-ring/40 text-sm transition-all"
         />
       </div>
