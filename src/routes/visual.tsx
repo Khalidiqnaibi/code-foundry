@@ -109,7 +109,11 @@ function SortViz() {
       return;
     }
 
-    if (sort.done) setSort(createSortState(shuffle(SORT_VALUES)));
+    if (sort.done) {
+      setSort(createSortState(shuffle(SORT_VALUES)));
+    } else {
+      step();
+    }
     setRunning(true);
   };
 
