@@ -55,41 +55,62 @@ function VisualPage() {
 }
 
 /* -------------------- Bubble sort -------------------- */
+const SORT_VALUES = [8, 3, 5, 1, 7, 2, 9, 4, 6];
+type SortState = { arr: number[]; i: number; j: number; hl: [number, number] | null; done: boolean };
+
+const createSortState = (arr = SORT_VALUES): SortState => ({ arr, i: 0, j: 0, hl: null, done: false });
+
 function SortViz() {
-  const [arr, setArr] = useState<number[]>([8, 3, 5, 1, 7, 2, 9, 4, 6]);
-  useEffect(() => { setArr(shuffle([8, 3, 5, 1, 7, 2, 9, 4, 6])); }, []);
+  const [sort, setSort] = useState<SortState>(() => createSortState());
   const [running, setRunning] = useState(false);
-  const [hl, setHl] = useState<[number, number] | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const state = useRef({ i: 0, j: 0 });
+  const { arr, hl } = sort;
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
-  const step = () => {
-    setArr((a) => {
-      const n = a.length;
-      const { i, j } = state.current;
-      if (i >= n - 1) { setRunning(false); setHl(null); return a; }
-      const copy = a.slice();
-      setHl([j, j + 1]);
-      if (copy[j] > copy[j + 1]) [copy[j], copy[j + 1]] = [copy[j + 1], copy[j]];
-      if (j + 1 >= n - 1 - i) { state.current = { i: i + 1, j: 0 }; }
-      else state.current = { i, j: j + 1 };
-      return copy;
+  const step = React.useCallback(() => {
+    setSort((current) => {
+      const n = current.arr.length;
+      if (current.done || current.i >= n - 1) return { ...current, hl: null, done: true };
+
+      const nextArr = current.arr.slice();
+      const active: [number, number] = [current.j, current.j + 1];
+      if (nextArr[current.j] > nextArr[current.j + 1]) {
+        [nextArr[current.j], nextArr[current.j + 1]] = [nextArr[current.j + 1], nextArr[current.j]];
+      }
+
+      const endOfPass = current.j + 1 >= n - 1 - current.i;
+      const nextI = endOfPass ? current.i + 1 : current.i;
+      const nextJ = endOfPass ? 0 : current.j + 1;
+      const done = nextI >= n - 1;
+
+      return { arr: nextArr, i: nextI, j: nextJ, hl: done ? null : active, done };
     });
-  };
+  }, []);
 
   useEffect(() => {
-    if (!running) return;
+    if (!running || sort.done) return;
     timer.current = setTimeout(step, 250);
     return () => { if (timer.current) clearTimeout(timer.current); };
-  }, [arr, running]);
+  }, [running, sort, step]);
+
+  useEffect(() => {
+    if (sort.done && running) setRunning(false);
+  }, [running, sort.done]);
 
   const reset = () => {
     setRunning(false);
-    state.current = { i: 0, j: 0 };
-    setHl(null);
-    setArr(shuffle([8, 3, 5, 1, 7, 2, 9, 4, 6]));
+    setSort(createSortState(shuffle(SORT_VALUES)));
+  };
+
+  const toggleRun = () => {
+    if (running) {
+      setRunning(false);
+      return;
+    }
+
+    if (sort.done) setSort(createSortState(shuffle(SORT_VALUES)));
+    setRunning(true);
   };
 
   const max = Math.max(...arr);
@@ -102,7 +123,7 @@ function SortViz() {
         </div>
         <div className="flex gap-2">
           <Btn size="sm" variant="outline" onClick={reset}><RotateCcw className="w-3.5 h-3.5" /> Reset</Btn>
-          <Btn size="sm" onClick={() => setRunning((r) => !r)}>
+          <Btn size="sm" onClick={toggleRun}>
             {running ? <><Pause className="w-3.5 h-3.5" /> Pause</> : <><Play className="w-3.5 h-3.5" /> Run</>}
           </Btn>
         </div>
@@ -112,7 +133,7 @@ function SortViz() {
           const isHl = hl?.includes(i);
           return (
             <motion.div
-              key={i}
+              key={v}
               layout
               className={`w-9 rounded-t-md flex items-end justify-center text-xs font-mono pb-1 ${
                 isHl ? "bg-warning text-warning-foreground" : "bg-primary/80 text-primary-foreground"
