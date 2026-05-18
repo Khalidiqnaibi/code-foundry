@@ -176,7 +176,7 @@ function LabPage() {
           </div>
 
           {/* AI Eval */}
-          <div className="border-t border-border p-4 bg-muted/20 max-h-[55%] overflow-y-auto shrink-0">
+          <div className="border-t border-border p-4 bg-muted/20 lg:max-h-[55%] lg:overflow-y-auto shrink-0">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-primary" />
