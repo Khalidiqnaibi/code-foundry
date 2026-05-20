@@ -2,10 +2,11 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, LayoutDashboard, BookOpen, FlaskConical, Users, Menu, Moon, Sun,
-  Search, Flame, ChevronDown, Code2, Activity,
+  Search, Flame, ChevronDown, Activity, Heart,
 } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "@/lib/theme";
+import logo from "@/assets/logo.jpg";
 
 const nav = [
   { to: "/", label: "Home", icon: Home },
@@ -14,6 +15,7 @@ const nav = [
   { to: "/lab", label: "Interactive Lab", icon: FlaskConical },
   { to: "/community", label: "Community", icon: Users },
   { to: "/visual", label: "Visual Learning", icon: Activity },
+  { to: "/team", label: "Team", icon: Heart },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -166,9 +168,7 @@ function SidebarInner({
   return (
     <>
       <div className="h-14 flex items-center gap-2 px-4 border-b border-sidebar-border shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-[oklch(0.65_0.2_200)] flex items-center justify-center text-primary-foreground shrink-0">
-          <Code2 className="w-4 h-4" />
-        </div>
+        <img src={logo} alt="CodePath" className="w-8 h-8 rounded-lg object-cover shrink-0" />
         {!collapsed && <span className="font-semibold tracking-tight">CodePath</span>}
       </div>
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
