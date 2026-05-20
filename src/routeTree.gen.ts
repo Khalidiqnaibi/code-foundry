@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VisualRouteImport } from './routes/visual'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CoursesRouteImport } from './routes/courses'
@@ -19,6 +20,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const VisualRoute = VisualRouteImport.update({
   id: '/visual',
   path: '/visual',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LabRoute = LabRouteImport.update({
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/lab': typeof LabRoute
+  '/team': typeof TeamRoute
   '/visual': typeof VisualRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/lab': typeof LabRoute
+  '/team': typeof TeamRoute
   '/visual': typeof VisualRoute
 }
 export interface FileRoutesById {
@@ -70,13 +78,28 @@ export interface FileRoutesById {
   '/courses': typeof CoursesRoute
   '/dashboard': typeof DashboardRoute
   '/lab': typeof LabRoute
+  '/team': typeof TeamRoute
   '/visual': typeof VisualRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/community' | '/courses' | '/dashboard' | '/lab' | '/visual'
+  fullPaths:
+    | '/'
+    | '/community'
+    | '/courses'
+    | '/dashboard'
+    | '/lab'
+    | '/team'
+    | '/visual'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/community' | '/courses' | '/dashboard' | '/lab' | '/visual'
+  to:
+    | '/'
+    | '/community'
+    | '/courses'
+    | '/dashboard'
+    | '/lab'
+    | '/team'
+    | '/visual'
   id:
     | '__root__'
     | '/'
@@ -84,6 +107,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/lab'
+    | '/team'
     | '/visual'
   fileRoutesById: FileRoutesById
 }
@@ -93,6 +117,7 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRoute
   DashboardRoute: typeof DashboardRoute
   LabRoute: typeof LabRoute
+  TeamRoute: typeof TeamRoute
   VisualRoute: typeof VisualRoute
 }
 
@@ -103,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/visual'
       fullPath: '/visual'
       preLoaderRoute: typeof VisualRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lab': {
@@ -149,8 +181,19 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRoute,
   DashboardRoute: DashboardRoute,
   LabRoute: LabRoute,
+  TeamRoute: TeamRoute,
   VisualRoute: VisualRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
